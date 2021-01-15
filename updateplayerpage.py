@@ -15,10 +15,10 @@ lpwiki = pywikibot.Site(code='pokemon', fam='liquipedia')
 
 # List all the pages to be edited
 def catpage(var=None):
-    if var == None:
+    if var is None:
         return pywikibot.pagegenerators.CategorizedPageGenerator(
             pywikibot.Category(lpwiki, 'Category:Players'),
-            recurse=False, start='Niko')#, total=)
+            recurse=False, start='Niko')
     else:
         return [pywikibot.Page(lpwiki, "test")]
 
@@ -46,7 +46,7 @@ for page in catpage(None):
 
     # Replace {{Tabs static}} with {{PlayerTabsHeader}}
     if 'Tabs static' in template_list:
-        id_tabs = [i for i, x in enumerate(template_list) \
+        id_tabs = [i for i, x in enumerate(template_list)
                    if x == 'Tabs static'][0]
 
         # Determine if player is broadcaster and has a 3rd tab.
@@ -56,25 +56,24 @@ for page in catpage(None):
             retabs_name = re.search('\|name3=(.*)', text)[1]
             retabs_exist = pywikibot.Page(lpwiki, retabs[1]).exists()
             if retabs_name == 'Broadcasts' and retabs_exist:
-                text = re.sub('\{\{Tabs static((.*)+\n){7,9}\}\}', \
+                text = re.sub('\{\{Tabs static((.*)+\n){7,9}\}\}',
                               r'{{PlayerTabsHeader|broadcaster=yes}}', text)
                 edits.append('Switched tabs to "PlayerTabsHeader" Template')
-            else: 
-                text = re.sub('\{\{Tabs static((.*)+\n){7,9}\}\}', \
+            else:
+                text = re.sub('\{\{Tabs static((.*)+\n){7,9}\}\}',
                               r'{{PlayerTabsHeader}}', text)
                 edits.append('Switched tabs to "PlayerTabsHeader" template')
-        else: 
-            text = re.sub('\{\{Tabs static((.*)+\n){5,7}\}\}', \
+        else:
+            text = re.sub('\{\{Tabs static((.*)+\n){5,7}\}\}',
                           r'{{PlayerTabsHeader}}', text)
             edits.append('Switched tabs to "PlayerTabsHeader" template')
 
     if 'Infobox player' in template_list:
-        idINFBX = [i for i, x in enumerate(template_list) \
-                      if x == 'Infobox player'][0]
+        idINFBX = [i for i, x in enumerate(template_list)
+                   if x == 'Infobox player'][0]
         params_list = templates[idINFBX][1]
 
         id_param = re.search('\|id=((.*)+)\n', text)
-
 
         # Remove DISPLAYTITLE if entry is the same as id in {{Infobox player}}
         try:
@@ -87,56 +86,53 @@ for page in catpage(None):
                 text = re.sub('\{\{DISPLAYTITLE:((.*)+)\}\}\n', '', text)
                 edits.append('Removed DISPLAYTITLE')
 
-
         # Identify TCG player. Check if ID is two fragments (usually a name),
         # then check if a substitution can be done.
         idfrag = id_param[0].split(' ')
         if len(idfrag) > 1:
-            text, tcgsubs = re.subn('(\[\[(.*?)Category(.*?)\]\]) player', \
-                '\g<1> Pokémon TCG player', text)
+            text, tcgsubs = re.subn('(\[\[(.*?)Category(.*?)\]\]) player',
+                                    '\g<1> Pokémon TCG player', text)
             if tcgsubs > 0:
                 edits.append('Identified TCG player')
 
-
-        # Bold Player ID/alias. First check if there exist a bolded 
+        # Bold Player ID/alias. First check if there exist a bolded
         # name/alias, if not search the lead and bold it.
         id_clean = re.sub(r'\s+$', '', id_param[1])    # Clean trailing spaces
         if not re.compile("'''{0}'''".format(id_clean)).search(text):
-            text, boldsubs = re.subn('(\n[^\|](.*)){0}((.*) is a)'.\
-                format(id_clean), "\g<1>'''{0}'''\g<3>".format(id_clean), \
-                text)
+            text, boldsubs = re.subn('(\n[^\|](.*)){0}((.*) is a)'.
+                                     format(id_clean), "\g<1>'''{0}'''\g<3>".
+                                     format(id_clean), text)
             if boldsubs > 0:
                 edits.append('Bold player name/alias')
 
-
-        # Remove URL prefixes in {{Infobox player}}. 
+        # Remove URL prefixes in {{Infobox player}}.
         # Goes through social media list and see if entries can be segmented.
         # If it does, it most likely has a URL prefix.
         social_prefix = {
-            'askfm':    'ask.fm',
-            'azubu':    'www.azubu.tv',
-            'douyu':    'www.douyu.com',
-            'facebook': 'facebook.com',
-            'gplus':    'plus.google.com',
-            'instagram':'www.instagram.com',
-            'reddit':   'www.reddit.com/user',
-            'steam':    'steamcommunity.com/profiles',
-            'tencent':  't.qq.com',
-            'twitch':   'www.twitch.tv',
-            'twitter':  'twitter.com',
-            'vk':       'vk.com',
-            'weibo':    'weibo.com',    
-            'youtube':  'www.youtube.com',
+            'askfm':     'ask.fm',
+            'azubu':     'www.azubu.tv',
+            'douyu':     'www.douyu.com',
+            'facebook':  'facebook.com',
+            'gplus':     'plus.google.com',
+            'instagram': 'www.instagram.com',
+            'reddit':    'www.reddit.com/user',
+            'steam':     'steamcommunity.com/profiles',
+            'tencent':   't.qq.com',
+            'twitch':    'www.twitch.tv',
+            'twitter':   'twitter.com',
+            'vk':        'vk.com',
+            'weibo':     'weibo.com',
+            'youtube':   'www.youtube.com',
             }
 
-        social_list = ['askfm', 'azubu','douyu','facebook', 'gplus', \
-            'instagram', 'reddit', 'steam', 'tencent', 'twitch', 'twitter', \
-            'vk', 'weibo', 'youtube']
+        social_list = ['askfm', 'azubu', 'douyu', 'facebook', 'gplus',
+                       'instagram', 'reddit', 'steam', 'tencent', 'twitch',
+                       'twitter', 'vk', 'weibo', 'youtube']
 
         flagURL = 0
         for ii in social_list:
             try:
-                test = params_list[ii]   
+                test = params_list[ii]
             except KeyError:
                 pass
             else:
@@ -149,28 +145,28 @@ for page in catpage(None):
                     if ii == 'youtube' and frag[0] in ['channel']:
                         pass
                     else:
-                        text = re.sub('(\|{0}=)((.*)+)'.format(ii), \
+                        text = re.sub('(\|{0}=)((.*)+)'.format(ii),
                                       res[1] + frag[-1], text)
                         if flagURL == 0:
                             edits.append('Removed social media URL prefix')
                             flagURL += 1
 
-
     # Add reference section if missing
-    flagref0 = pywikibot.textlib.does_text_contain_section(page.text, \
-        "References")
-    flagref1 = pywikibot.textlib.does_text_contain_section(page.text, \
-        "Reference")
+    flagref0 = pywikibot.textlib.does_text_contain_section(
+                    page.text, "References"
+               )
+    flagref1 = pywikibot.textlib.does_text_contain_section(
+                    page.text, "Reference"
+               )
     if not flagref0:
         # If there is completely no reference section
-        if not flagref1:    
+        if not flagref1:
             text += "\n\n==References== \n{{Reflist}}"
             edits.append('Added reference section')
         # If there is section labelled 'Reference' without "s"
         else:
             text = re.sub('==Reference==', '==References==', text)
             edits.append('Update References')
-    
 
     # Check if any changes to be made to the page
     if text != page.text:
@@ -186,10 +182,3 @@ for page in catpage(None):
         page.save(edit_summary)
     else:
         print('No changes to {0}, page skipped'.format(page.title()))
-
-##############################################################################
-    # print("Check if page exists:", page.exists())
-    # print("Title of the page:", page.title())
-    # print("Contributors of the page:", page.contributors())
-    # print("Last edit made on page:", page.editTime())
-    # print("Full URL to page:", page.full_url())
