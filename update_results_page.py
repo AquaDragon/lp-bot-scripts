@@ -1,5 +1,5 @@
 '''
-NAME:           updateplayerpage.py
+NAME:           update_results_page.py
 AUTHOR:         AquaDragon
 DATE:           17 Jan 2021
 DESCRIPTION:    Script for cleaning up player result pages on Pokemon

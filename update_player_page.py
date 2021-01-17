@@ -1,7 +1,7 @@
 '''
-NAME:           updateplayerpage.py
+NAME:           update_player_page.py
 AUTHOR:         AquaDragon
-DATE:           15 Jan 2021
+DATE:           17 Jan 2021
 DESCRIPTION:    Script for cleaning up player pages on Pokemon Liquipedia.
 '''
 import re
