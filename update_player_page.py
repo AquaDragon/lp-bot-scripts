@@ -18,7 +18,7 @@ def catpage(var=None):
     if var is None:
         return pywikibot.pagegenerators.CategorizedPageGenerator(
             pywikibot.Category(lpwiki, 'Category:Players'),
-            recurse=False, start='Niko')
+            recurse=False, namespaces=[0], start='')  # , total=10)
     else:
         return [pywikibot.Page(lpwiki, "test")]
 
@@ -29,10 +29,10 @@ for page in catpage(None):
     text = page.text
 
     # Remove excessive newlines
-    text, sbNL1 = re.subn('\n\n\s', '\n', text)
-    text, sbNL2 = re.subn('\n\n\n', '\n\n', text)
-    if sbNL1 + sbNL2 > 0:
-        edits.append('Removed excessive newline skips')
+    test, sbNL = re.subn('\n(\s*)\n(\s*)', '\n\n', text)
+    if sbNL > 0 and test != text:
+        text = test
+        edits.append('Removed excess newlines')
 
     # Remove template indentation
     text, sbID1 = re.subn('\n\s\|', r'\n|', text)
@@ -40,6 +40,12 @@ for page in catpage(None):
     text, sbID3 = re.subn('\n\s\{\{', r'\n{{', text)
     if sbID1 + sbID2 + sbID3 > 0:
         edits.append('Removed template indentation')
+
+    # Remove end-of-line whitespace
+    test, sbWS = re.subn('( *)\n', '\n', text)
+    if sbWS > 0 and test != text:
+        text = test
+        edits.append('Removed end-of-line whitespaces')
 
     templates = pywikibot.textlib.extract_templates_and_params(page.text)
     template_list = [item[0] for item in templates]
@@ -85,6 +91,29 @@ for page in catpage(None):
             if displaytitle[1] == id_param[1]:
                 text = re.sub('\{\{DISPLAYTITLE:((.*)+)\}\}\n', '', text)
                 edits.append('Removed DISPLAYTITLE')
+
+        # Identify the game played and add the field to the infobox
+        isvgc = re.search('mon VGC(.*)player', text)
+        istcg = re.search('mon TCG(.*)player', text)
+
+        games_played_exist = re.search('\|games_played=', text)
+        if not games_played_exist:
+            if isvgc and not istcg:
+                text = re.sub('(\|country=.*\n)(\|.*)',
+                              '\g<1>|games_played=VGC\n\g<2>', text)
+                edits.append('Set games_played=VGC')
+            elif istcg and not isvgc:
+                text = re.sub('(\|country=.*\n)(\|.*)',
+                              '\g<1>|games_played=TCG\n\g<2>', text)
+                edits.append('Set games_played=TCG')
+            elif istcg and isvgc:
+                text = re.sub('(\|country=.*\n)(\|.*)',
+                              '\g<1>|games_played=TCG, VGC\n\g<2>', text)
+                edits.append('Set games_played=TCG, VGC')
+            else:
+                text = re.sub('(\|country=.*\n)(\|.*)',
+                              '\g<1>|games_played=\n\g<2>', text)
+                edits.append('Added empty games_played field')
 
         # Identify TCG player. Check if ID is two fragments (usually a name),
         # then check if a substitution can be done.
